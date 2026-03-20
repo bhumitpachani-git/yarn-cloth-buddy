@@ -4,11 +4,14 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AppLayout from "./components/AppLayout";
+import PwaInstallPrompt from "./components/PwaInstallPrompt";
 import Dashboard from "./pages/Dashboard";
 import BuyYarn from "./pages/BuyYarn";
 import ProductionPage from "./pages/ProductionPage";
 import SellCloth from "./pages/SellCloth";
 import Reports from "./pages/Reports";
+import Parties from "./pages/Parties";
+import PartyHistory from "./pages/PartyHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -18,6 +21,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <PwaInstallPrompt />
       <BrowserRouter>
         <Routes>
           <Route element={<AppLayout />}>
@@ -26,6 +30,8 @@ const App = () => (
             <Route path="/production" element={<ProductionPage />} />
             <Route path="/sell" element={<SellCloth />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/parties" element={<Parties />} />
+            <Route path="/party/:name" element={<PartyHistory />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

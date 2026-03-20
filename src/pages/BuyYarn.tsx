@@ -2,29 +2,33 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { addPurchase, addParty, getPurchases, uid, deletePurchase } from "@/lib/storage";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { addPurchase, addParty, getPurchases, getParties, uid, deletePurchase } from "@/lib/storage";
 import { costPerKg, formatINR } from "@/lib/calc";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 const BuyYarn = () => {
   const navigate = useNavigate();
+  const parties = getParties();
   const [partyName, setPartyName] = useState("");
+  const [customParty, setCustomParty] = useState("");
   const [kg, setKg] = useState("");
   const [totalCost, setTotalCost] = useState("");
   const [purchases, setPurchases] = useState(getPurchases);
 
   const refresh = () => setPurchases(getPurchases());
+  const effectiveParty = partyName === "__new__" ? customParty : partyName;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const kgN = parseFloat(kg);
     const costN = parseFloat(totalCost);
-    if (!partyName || !kgN || !costN) { toast.error("Please fill all fields"); return; }
-    addPurchase({ id: uid(), date: new Date().toISOString(), partyName, yarnKg: kgN, totalCost: costN, costPerKg: costPerKg(costN, kgN) });
-    addParty(partyName);
+    if (!effectiveParty || !kgN || !costN) { toast.error("Please fill all fields"); return; }
+    addPurchase({ id: uid(), date: new Date().toISOString(), partyName: effectiveParty, yarnKg: kgN, totalCost: costN, costPerKg: costPerKg(costN, kgN) });
+    addParty(effectiveParty);
     toast.success(`Saved! Cost/kg = ${formatINR(costPerKg(costN, kgN))}`);
-    setPartyName(""); setKg(""); setTotalCost("");
+    setPartyName(""); setCustomParty(""); setKg(""); setTotalCost("");
     refresh();
   };
 
@@ -37,7 +41,18 @@ const BuyYarn = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="text-sm font-semibold text-muted-foreground">Party Name</label>
-          <Input value={partyName} onChange={e => setPartyName(e.target.value)} placeholder="e.g. Ramesh Textiles" className="mt-1 text-base h-12" />
+          <Select value={partyName} onValueChange={setPartyName}>
+            <SelectTrigger className="mt-1 h-12 text-base"><SelectValue placeholder="Select party" /></SelectTrigger>
+            <SelectContent>
+              {parties.map(p => (
+                <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+              ))}
+              <SelectItem value="__new__">➕ Add New Party</SelectItem>
+            </SelectContent>
+          </Select>
+          {partyName === "__new__" && (
+            <Input value={customParty} onChange={e => setCustomParty(e.target.value)} placeholder="Enter new party name" className="mt-2 text-base h-12" />
+          )}
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>

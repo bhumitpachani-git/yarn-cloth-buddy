@@ -2,30 +2,34 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { addSale, getSales, uid, deleteSale, addParty } from "@/lib/storage";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { addSale, getSales, uid, deleteSale, addParty, getParties } from "@/lib/storage";
 import { formatINR } from "@/lib/calc";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 const SellCloth = () => {
   const navigate = useNavigate();
+  const parties = getParties();
   const [partyName, setPartyName] = useState("");
+  const [customParty, setCustomParty] = useState("");
   const [meters, setMeters] = useState("");
   const [rate, setRate] = useState("");
   const [sales, setSales] = useState(getSales);
 
   const refresh = () => setSales(getSales());
+  const effectiveParty = partyName === "__new__" ? customParty : partyName;
   const total = (parseFloat(meters) || 0) * (parseFloat(rate) || 0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const mN = parseFloat(meters);
     const rN = parseFloat(rate);
-    if (!partyName || !mN || !rN) { toast.error("Please fill all fields"); return; }
-    addSale({ id: uid(), date: new Date().toISOString(), partyName, metersSold: mN, ratePerMeter: rN, totalAmount: mN * rN });
-    addParty(partyName);
+    if (!effectiveParty || !mN || !rN) { toast.error("Please fill all fields"); return; }
+    addSale({ id: uid(), date: new Date().toISOString(), partyName: effectiveParty, metersSold: mN, ratePerMeter: rN, totalAmount: mN * rN });
+    addParty(effectiveParty);
     toast.success(`Saved! Total = ${formatINR(mN * rN)}`);
-    setPartyName(""); setMeters(""); setRate("");
+    setPartyName(""); setCustomParty(""); setMeters(""); setRate("");
     refresh();
   };
 
@@ -38,7 +42,18 @@ const SellCloth = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="text-sm font-semibold text-muted-foreground">Party Name</label>
-          <Input value={partyName} onChange={e => setPartyName(e.target.value)} placeholder="e.g. Suresh Fabrics" className="mt-1 text-base h-12" />
+          <Select value={partyName} onValueChange={setPartyName}>
+            <SelectTrigger className="mt-1 h-12 text-base"><SelectValue placeholder="Select party" /></SelectTrigger>
+            <SelectContent>
+              {parties.map(p => (
+                <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+              ))}
+              <SelectItem value="__new__">➕ Add New Party</SelectItem>
+            </SelectContent>
+          </Select>
+          {partyName === "__new__" && (
+            <Input value={customParty} onChange={e => setCustomParty(e.target.value)} placeholder="Enter new party name" className="mt-2 text-base h-12" />
+          )}
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>

@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { ShoppingCart, Settings2, Receipt, BarChart3 } from "lucide-react";
+import { ShoppingCart, Settings2, Receipt, BarChart3, Users } from "lucide-react";
 import { getPurchases, getProductions, getSales } from "@/lib/storage";
 import { formatINR } from "@/lib/calc";
 
 const actions = [
+  { to: "/parties", icon: Users, label: "👥 Parties", color: "bg-secondary text-secondary-foreground" },
   { to: "/buy", icon: ShoppingCart, label: "🧵 Buy Yarn", color: "bg-primary text-primary-foreground" },
   { to: "/production", icon: Settings2, label: "⚙️ Production", color: "bg-accent text-accent-foreground" },
   { to: "/sell", icon: Receipt, label: "🧾 Sell Cloth", color: "bg-info text-info-foreground" },
